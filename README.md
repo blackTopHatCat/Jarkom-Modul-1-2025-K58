@@ -68,10 +68,4 @@ _block 5: Konfigurasi dns resolver pada node Melkor._
 ## No.5
 **SOAL:** Ainur terkuat Melkor tetap berusaha untuk menanamkan kejahatan ke dalam Arda (Bumi). Sebelum terjadi kerusakan, Eru dan para Ainur lainnya meminta agar semua konfigurasi tidak hilang saat semua node di restart.
 
-**PENJELASAN:** Sudah dilakukan dengan menuliskan command2 yang diperlukan pada `.bashrc` karena akan dijalankan saat node dimulai
-
-```
-apt update -y && apt install iptables -y
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 192.240.0.0/16
-```
-_block 6: contoh `.bashrc` pada node Eru_
+**PENJELASAN:** Sudah dilakukan dengan menuliskan command2 yang diperlukan pada `.bashrc` karena akan dijalankan saat node dimulai. Untuk file yang ingin diakses bisa diletakan di `/root/` dan diakes dg direct path (BUKAN RELATIVE PATH).
