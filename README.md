@@ -51,12 +51,27 @@ iface eth0 inet static
 _block 3: Konfigurasi interface `eth0` pada node Melkor._
 
 ## No.4
-**SOAL:** Setelah berhasil terhubung, sekarang Eru ingin agar setiap Ainur (Client) dapat mandiri. Oleh karena itu pastikan agar setiap Client dapat tersambung ke internet
+**SOAL:** Setelah berhasil terhubung, sekarang Eru ingin agar setiap Ainur (Client) dapat mandiri. Oleh karena itu pastikan agar setiap Client dapat tersambung ke internet.
 
-**PENJELASAN:**  Install `iptables` dan masukkan perintah konfigurasi ke `.bashrc`. Perintah `iptables` akan menyamarkan sumber IP pengirim (para client) dengan yang ada di perintah, lalu node Eru akan berlaku sebagai NAT bagi mereka dan menghubungkan masing-masing LAN dengan internet.
+**PENJELASAN:**  Install `iptables` dan masukkan perintah konfigurasi ke `.bashrc`. Perintah `iptables` akan menyamarkan sumber IP pengirim (para client) dengan yang ada di perintah, lalu node Eru akan berlaku sebagai NAT bagi mereka dan menghubungkan masing-masing LAN dengan internet. Jangan lupa juga menambahkan dns resolver Eru kepada client-clientnya.
 
 ```
 apt update -y && apt install iptables -y
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 192.240.0.0/16
 ```
 _block 4: Konfigurasi `.bashrc` pada node Eru._
+```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+```
+_block 5: Konfigurasi dns resolver pada node Melkor._
+
+## No.5
+**SOAL:** Ainur terkuat Melkor tetap berusaha untuk menanamkan kejahatan ke dalam Arda (Bumi). Sebelum terjadi kerusakan, Eru dan para Ainur lainnya meminta agar semua konfigurasi tidak hilang saat semua node di restart.
+
+**PENJELASAN:** Sudah dilakukan dengan menuliskan command2 yang diperlukan pada `.bashrc` karena akan dijalankan saat node dimulai
+
+```
+apt update -y && apt install iptables -y
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 192.240.0.0/16
+```
+_block 6: contoh `.bashrc` pada node Eru_
