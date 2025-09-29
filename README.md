@@ -69,3 +69,13 @@ _block 5: Konfigurasi dns resolver pada node Melkor._
 **SOAL:** Ainur terkuat Melkor tetap berusaha untuk menanamkan kejahatan ke dalam Arda (Bumi). Sebelum terjadi kerusakan, Eru dan para Ainur lainnya meminta agar semua konfigurasi tidak hilang saat semua node di restart.
 
 **PENJELASAN:** Sudah dilakukan dengan menuliskan command2 yang diperlukan pada `.bashrc` karena akan dijalankan saat node dimulai. Untuk file yang ingin diakses bisa diletakan di `/root/` dan diakes dg direct path (BUKAN RELATIVE PATH).
+
+## No.6
+**SOAL:** Setelah semua Ainur terhubung ke internet, Melkor mencoba menyusup ke dalam komunikasi antara Manwe dan Eru. Jalankan file berikut (link file) lalu lakukan packet sniffing menggunakan Wireshark pada koneksi antara Manwe dan Eru, lalu terapkan display filter untuk menampilkan semua paket yang berasal dari atau menuju ke IP Address Manwe. Simpan hasil capture tersebut sebagai bukti.
+
+**PENJELASAN:** Jalan
+
+```
+ip.dst == 10.15.43.32 && (tcp.dstport <= 6000 && tcp.dstport >= 5000)
+```
+_block 6: search prompt pada display capture wireshark_
