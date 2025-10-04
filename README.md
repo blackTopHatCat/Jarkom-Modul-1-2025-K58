@@ -2,5 +2,362 @@
 
 | Nama                        | NRP        |
 | --------------------------- | ---------- |
-| Hansen Chang                | 5027241028 |
+| Thio Billy Amansyah         | 5027231007 |
 | Ivan Syarifuddin            | 5027241045 |
+
+# Modul 1
+
+## No.1
+**SOAL:** Untuk mempersiapkan pembuatan entitas selain mereka, Eru yang berperan sebagai Router membuat dua Switch/Gateway . Dimana Switch 1 akan menuju ke dua Ainur yaitu Melkor dan Manwe. Sedangkan Switch 2 akan menuju ke dua Ainur lainnya yaitu Varda dan Ulmo. Keempat Ainur tersebut diberi perintah oleh Eru untuk menjadi Client.
+
+**PENJELASAN:** Buat topologi LAN seperti gambar di bawah ini:
+
+<img alt="modul-1_1.jpg" src="img/modul-1_1.jpg" />
+
+## No.2
+**SOAL:** Karena menurut Eru pada saat itu Arda (Bumi) masih terisolasi dengan dunia luar, maka buat agar Eru dapat tersambung ke internet.
+
+**PENJELASAN:**  Hubungkan node Eru dengan sebuah node NAT dan menuliskan konfigurasi untuk interface Eru yang terhubung. Interface yg dipilih adalah `eth0`.
+
+<img alt="modul-1_2.jpg" src="img/modul-1_2.jpg" />
+
+Command yang dijalankan untuk mengatur configurasi..
+```
+echo "auto eth0" > /etc/network/interfaces
+echo "iface eth0 inet dhcp" >> /etc/network/interfaces
+```
+
+## No.3
+**SOAL:** Sekarang pastikan agar setiap Ainur (Client) dapat terhubung satu sama lain.
+
+**PENJELASAN:**  Hubungkan tiap node Client dengan node Eru sebagai router mereka, lalu menuliskan konfigurasi untuk interface masing-masing (Eru dan para client).
+
+<img alt="modul-1_3.jpg" src="img/modul-1_3.jpg" />
+
+Contoh command yang dijalankan untuk mengatur configurasi pada node-node client..
+```
+echo "auto eth0" > /etc/network/interfaces
+echo "iface eth0 inet static" >> /etc/network/interfaces
+echo "	address 192.240.1.2" >> /etc/network/interfaces
+echo "	netmask 255.255.255.0" >> /etc/network/interfaces
+```
+
+Contoh command yang dijalankan untuk mengatur configurasi pada node Eru..
+```
+echo "auto eth0" >> /etc/network/interfaces
+echo "iface eth0 inet static" >> /etc/network/interfaces
+echo "	address 192.240.1.1" >> /etc/network/interfaces
+echo "	netmask 255.255.255.0" >> /etc/network/interfaces
+```
+
+## No.4
+**SOAL:** Setelah berhasil terhubung, sekarang Eru ingin agar setiap Ainur (Client) dapat mandiri. Oleh karena itu pastikan agar setiap Client dapat tersambung ke internet
+
+**PENJELASAN:**  Tambahkan konfigurasi pada interface masing-masing node client.
+
+Command yang dijalankan untuk mengatur configurasi pada node Eru..
+```
+echo "	gateway 192.240.1.1" >> /etc/network/interfaces
+echo "	up echo nameserver 192.168.122.1 > /etc/resolv.conf" >> /etc/network/interfaces
+echo "apt update -y && apt install iptables vim -y" >> /root/.bashrc
+echo "iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE -s 192.240.0.0/16" >> /root/.bashrc
+```
+
+## No.5
+**SOAL:** Ainur terkuat Melkor tetap berusaha untuk menanamkan kejahatan ke dalam Arda (Bumi). Sebelum terjadi kerusakan, Eru dan para Ainur lainnya meminta agar semua konfigurasi tidak hilang saat semua node di restart
+
+**PENJELASAN:**  Tempatkan semua script pada directory `/root` dan selalu gunakan direct path dalam input command apapun (terutama text editor). Maka perubahan akan menetap setelah restart. Jika ingin script dijalankan ketika mesin baru mulai, tuils yang diinginkan pada `/root/.bashrc`.
+
+## No.6
+**SOAL:** Setelah semua Ainur terhubung ke internet, Melkor mencoba menyusup ke dalam komunikasi antara Manwe dan Eru. Jalankan file berikut [(link _file_)](https://drive.google.com/drive/folders/1ULr_Fik1O0_79zUng41POMZtdzJTugVR) lalu lakukan packet sniffing menggunakan Wireshark pada koneksi antara Manwe dan Eru, lalu terapkan display filter untuk menampilkan semua paket yang berasal dari atau menuju ke IP Address Manwe. Simpan hasil capture tersebut sebagai bukti.
+
+**PENJELASAN:**  Download file pada salah satu mesin (Manwe atau Eru), decompress file zip yang telah didownload, lalu jalankan scriptnya. Untuk melihat lalu-lintas jaringan sebuah target, kita perlu berada di jalur lintas datanya. Jadi wireshark paling effectif dijalankan oleh Host controller GNS3 pada interface yang mewakili sebagai gateway dari network GNS (`virbr0`).
+
+<img alt="modul-1_6.jpg" src="img/modul-1_6.jpg" />
+
+_[IP addr dari interface host controller]_
+
+<img alt="modul-1_6-1.jpg" src="img/modul-1_6-1.jpg" />
+
+_[IP addr dari interface node Eru]_
+
+Commmand yang dijalankan oleh Manwe dan/atau Eru..
+```
+apt update -y && apt install ca-certificates -y
+wget "https://drive.google.com/uc?export=download&id=1bE3kF1Nclw0VyKq4bL2VtOOt53IC7lG5" -O /root/traffic.zip
+apt install unzip && unzip /root/traffic.zip -d /root && chmod +x /root/traffic.sh
+/root/traffic.sh
+```
+
+Wireshark hanya menunjukkan sambungan dari host controller `192.168.122.126` ke IP `8.8.8.8` atau `90.130.70.73`. Jadi hanya gateway atau NAT device yang terlihat.
+
+<img alt="modul-1_6-2.jpg" src="img/modul-1_6-2.jpg" />
+
+_[Contoh hasil wireshark di host controller]_
+
+## No.7
+**SOAL:** Untuk meningkatkan keamanan, Eru memutuskan untuk membuat sebuah FTP Server di node miliknya. Lakukan konfigurasi FTP Server pada node Eru. Buat dua user baru: ainur dengan hak akses write&read dan melkor tanpa hak akses sama sekali ke
+direktori shared. Buktikan hasil tersebut dengan membuat file teks sederhana kemudian akses file tersebut menggunakan kedua user.
+
+**PENJELASAN:** Gunakan program FTP server yang bekerja dengan baik dengan CLI dan Linux. Disarankan program `vsftpd` dengan konfigurasi berikut pada `/etc/vsftpd.conf`:
+
+```
+listen=YES            # acts as a daemon and listens for connection requests
+anonymous_enable=NO   # needs to login as one of server's user
+local_enable=YES      # enable to login as one of user from server
+local_umask=077       # default file permission for files inside shared directory (no permission for groups and others)
+dirmessage_enable=YES # welcome message n stuff
+ssl_enable=NO         # encrypted connection
+pasv_enable=Yes       # server doesnt try to connect to client on random ports
+pasv_min_port=10000   #   but instead opens itself on certain ports/portrange 
+pasv_max_port=10100
+local_root=/var/share/ftp  # shared directory location
+write_enable=YES           # FTP user allowed to put its files to shared directory
+```
+
+Command yang dijalankan: 
+
+```
+mkdir -p /var/share/ftp
+chown :ftp /var/share/ftp
+chmod g+w /var/share/ftp
+
+useradd -aG ftp -m ainur 
+echo ainur | passwd ainur --stdin
+useradd -m melkor  # without home dir, login ftp will fail
+echo melkor | passwd melkor --stdin
+```
+
+<img alt="modul-1_7.jpg" src="img/modul-1_7.jpg" />
+<img alt="modul-1_7-1.jpg" src="img/modul-1_7-1.jpg" />
+<img alt="modul-1_7-2.jpg" src="img/modul-1_7-2.jpg" />
+
+_[Perbandingan kemampuan dua user dengan permission yang berbeda]_
+
+## No.8
+**SOAL** Ulmo, sebagai penjaga perairan, perlu mengirimkan data ramalan cuaca ke node Eru. Lakukan koneksi sebagai client dari node Ulmo ke FTP Server Eru menggunakan user ainur. Upload sebuah file berikut (link file). Analisis proses ini menggunakan Wireshark dan identifikasi perintah FTP yang digunakan untuk proses upload.
+
+**PENJELASAN:** Lihat wireshark pada interface `lo` untuk menguping komunikasi telnet antara host controller (port 5000) dengan terminalnya host sendiri.
+
+<img alt="modul-1_8.jpg" src="img/modul-1_8.jpg" />
+
+_[Terlihat command yang dipakai itu `put`]_
+
+Pengiriman file ke node Eru menggunakan telnet juga, dengan copas lalu print ke file dalam node Eru.
+
+## No.9
+**SOAL** Eru ingin membagikan "Kitab Penciptaan" di (link file) kepada Manwe. Dari FTP Server Eru, download file tersebut ke node Manwe. Karena Eru merasa Kitab tersebut sangat penting maka ia mengubah akses user ainur menjadi read-only. Gunakan Wireshark untuk memonitor koneksi, identifikasi perintah FTP yang digunakan, dan uji akses user
+ainur.
+
+**PENJELASAN** Ubah konfigurasi permission pada `/etc/vsftpd.conf`.
+
+```
+local_umask=0377  # any file in shared dir can only be read
+write_enable=NO   # cant upload files
+```
+
+<img alt="modul-1_8.jpg" src="img/modul-1_9-3.jpg" />
+
+_[Mulai data transfer]_
+
+<img alt="modul-1_8.jpg" src="img/modul-1_9.jpg" />
+
+_[Pengiriman data / kitab]_
+
+<img alt="modul-1_8.jpg" src="img/modul-1_9-1.jpg" />
+
+_[Perintah yang digunakan untuk mendownload kitab adalah `get`]_
+
+<img alt="modul-1_8.jpg" src="img/modul-1_9-2.jpg" />
+
+_[Percobaan mengupload clone kitab tidak berhasil]_
+
+## No.10
+**SOAL** Melkor yang marah karena tidak diberi akses, mencoba melakukan serangan dengan mengirimkan banyak sekali request ke server Eru. Gunakan command ping dari node Melkor ke node Eru dengan jumlah paket yang tidak biasa (spam ping misalnya 100 paket). Amati hasilnya, apakah ada packet loss? Catat average round trip time untuk melihat apakah serangan tersebut mempengaruhi kinerja Eru.
+
+**PENJELASAN** Melkor mencoba untuk melakukan ping sebanyak 10.000 kali dengan interval antar ping sebesar 2 ms. Namun tidak membuahkan hasil yang diinginkan karena rtt yang dihasilkan tidak berubah besar dibanding dengan 5 paket dengan interval yang serupa.
+
+Baru berdampak apabila dijalankan command `ping` secara parallel. Sejumlah 30 berlangsungan menghasilkan dampak penggunaan CPU 99% di server GNS3 dan rtt paling lama 2.7 detik.
+
+```
+root@Melkor:~# ping -4 -c 10000 192.240.1.1 -i 0.002 -q 
+PING 192.240.1.1 (192.240.1.1) 56(84) bytes of data.
+
+--- 192.240.1.1 ping statistics ---
+10000 packets transmitted, 10000 received, 0% packet loss, time 19996ms
+rtt min/avg/max/mdev = 0.025/0.264/0.680/0.116 ms
+```
+
+_[Ping 10000 kali dengan rata-rata rtt 0.264 ms]_
+
+```
+root@Melkor:~# ping -4 -c 5 192.240.1.1 -i 0.002 -q 
+PING 192.240.1.1 (192.240.1.1) 56(84) bytes of data.
+
+--- 192.240.1.1 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 8ms
+rtt min/avg/max/mdev = 0.225/0.387/0.532/0.118 ms
+```
+
+_[Ping 5 kali dengan rata-rata rtt 0.387 ms]_
+
+```
+--- 192.240.1.1 ping statistics ---
+10000 packets transmitted, 10000 received, 0% packet loss, time 20049ms
+rtt min/avg/max/mdev = 0.022/0.053/2.710/0.058 ms
+```
+
+_[Salah satu statistik ping setelah dijalankan secara parallel]_ 
+
+---------
+
+# Modul 1
+
+## No.11
+**SOAL:** Sebelum era koneksi aman, Eru sering menyelinap masuk ke wilayah Melkor. Eru perlu masuk ke node tersebut untuk memeriksa konfigurasi, namun ia tahu Melkor mungkin sedang memantau jaringan. Buktikan kelemahan protokol Telnet dengan
+membuat akun dan password baru di node Melkor kemudian menangkap sesi login Eru ke node Melkor menggunakan Wireshark. Tunjukkan bagaimana username dan password dapat terlihat sebagai plain text.
+
+**PENJELASAN:** Dibuat prompt password sederhana pada `.bashrc` Melkor dengan isinya sebagai berikut:
+```
+while true; do 
+  read -rp "Password: " PASS 
+  [[ $PASS == "melkor" ]] && break
+done
+```
+
+..lalu coba telnet dari Eru ke Melkor (192.168.122.1 port 5002) lalu awasi interface controller `virbr0` dg wireshark.
+
+<img alt="modul-1_1.jpg" src="img/modul-1_11.jpg" />
+
+_[Melkor ada pada port 5002 dan terlihat prompt passwordnya]_
+
+Yang terlihat ketika mengirimkan password adalah pengiriman per huruf seperti berikut (passwordnya "melkor"):
+
+<img alt="modul-1_1.jpg" src="img/1.jpg" />
+<img alt="modul-1_1.jpg" src="img/2.jpg" />
+<img alt="modul-1_1.jpg" src="img/3.jpg" />
+<img alt="modul-1_1.jpg" src="img/4.jpg" />
+<img alt="modul-1_1.jpg" src="img/5.jpg" />
+<img alt="modul-1_1.jpg" src="img/6.jpg" />
+<img alt="modul-1_1.jpg" src="img/7.jpg" />
+
+_[Gambar terakhir menunjukan Eru telah terhubung dalam node Melkor]_
+
+## No.12
+**SOAL:** Eru mencurigai Melkor menjalankan beberapa layanan terlarang di node-nya. Lakukan pemindaian port sederhana dari node Eru ke node Melkor menggunakan Netcat (nc) untuk memeriksa port 21, 80, dalam keadaan terbuka dan port rahasia 666 dalam
+keadaan tertutup.
+
+**PENJELASAN:** Scan port dengan menggunakan command berikut dari node Eru ke Melkor (192.240.1.2):
+```
+nc -zv 192.240.1.2 21
+nc -zv 192.240.1.2 80
+nc -zv 192.240.1.2 666 
+```
+
+Untuk menjalankan nc dalam mode listen, jalankan command berikut pada node melkor:
+```
+nc -l 80 > /root/p80.txt
+```
+
+Namun tampaknya Melkor tidak melakukan apapun yang mencurigakan..
+
+<img alt="modul-1_1.jpg" src="img/scan.jpg" />
+
+
+<img alt="modul-1_1.jpg" src="img/nc.jpg" />
+
+_[andaikan Melkor membuka server pada port 80 dan mencatat hasilnya pada sebuah file]_
+
+## No.13
+**SOAL:** Setelah insiden penyadapan Telnet, Eru memerintahkan semua koneksi administratif harus menggunakan SSH (Secure Shell) untuk mengamankan jaringan. Lakukan koneksi SSH dari node Varda ke Eru. Tangkap sesi tersebut menggunakan Wireshark. Analisis dan jelaskan mengapa username dan password tidak dapat dilihat seperti pada sesi Telnet. Tunjukkan paket-paket terenkripsi dalam hasil capture sebagai bukti keamanan SSH.
+
+**PENJELASAN:** Install `openssh-server` lalu jalankan daemonnya dengan `service ssh start`. Akun sebelumnya dari soal FTP bisa digunakan kembali. Kalau analisis dilakukan dalam Eru, maka paket yang terlihat akan terenkripsi dengan jenis public encryption. Namun komunikasi antar controller dengan terminal host masih belum terenkripsi, jadi bisa dilihat passwordnya sama seperti soal nomor 11.
+
+<img alt="modul-1_1.jpg" src="img/enc.jpg" />
+
+## 14. nc 10.15.43.32 3401
+![WhatsApp Image 2025-10-01 at 15 37 40_132ecdd9](https://github.com/user-attachments/assets/2c50940b-1a48-4312-891e-96f90dbb4d38)
+
+#### Pertama untuk menjawab pertanyaan yang pertama, kita tinggal melihat jumlah packets di wiresehark
+
+<img width="193" height="30" alt="image" src="https://github.com/user-attachments/assets/66261d22-e1a0-413f-881a-1640e5164920" />
+
+
+#### untuk mendapatkan jawaban soal kedua yaitu credential kita tinggal lakukan display filter ```frame contains "successful"```
+setelah itu kita follow tcp stream dan mencari username dan password
+
+<img width="1920" height="826" alt="image" src="https://github.com/user-attachments/assets/d45e29cc-c7b3-4e3d-a7cb-9b9f183a647d" />
+
+
+#### untuk pertanyaan ketiga untuk membaca tcp stream keberapa kita tinggal baca setelah eq di display filter, itu menunjukan stream berapa
+
+<img width="1280" height="1030" alt="image" src="https://github.com/user-attachments/assets/a3f704d0-5288-4052-bf2e-8f11d8240abd" />
+
+
+#### nah untuk tools yang digunakan kita bisa melihat bagian user-agent
+
+
+## 16. nc 10.15.43.32 3403
+
+![WhatsApp Image 2025-10-01 at 22 39 16_b29793f0](https://github.com/user-attachments/assets/bd0b70e4-db24-4232-b415-842fc386ab70)
+
+
+#### Untuk mendapatkan login credential kita bisa follow tcp stream dari yang memberikan signal RST 
+
+<img width="1278" height="1030" alt="image" src="https://github.com/user-attachments/assets/9f724567-63e4-47eb-8bfb-3c56bb74d085" />
+
+#### dari sini bisa terlihat bahwa melkor menaruh file suspicious dengan extension ".exe" 
+
+### untuk mencari hash dari file-file tadi caranya adalah 
+- Follow TCP stream dari masing-masing file, lalu show as RAW data, dan export
+  <img width="1281" height="1032" alt="image" src="https://github.com/user-attachments/assets/acefbc62-85cd-4b82-8771-6f0677f4c0eb" />
+
+- setelah export file, lakukan ```sha256sum``` di linux untuk mendapatkan hash dari file-file nya
+
+  <img width="671" height="449" alt="image" src="https://github.com/user-attachments/assets/ccdf2ad4-6d11-43f5-967e-f7f55c7e7a2d" />
+
+berikut adalah hasil hash dari masing-masing suspicious file
+
+## 17. nc 10.15.43.32 3404 
+
+![WhatsApp Image 2025-10-01 at 22 55 43_9af5a955](https://github.com/user-attachments/assets/e57007c2-8598-41c9-8a6d-6955804ce388)
+
+#### Karena dari soal melkor ingin menyusupkan file berbahaya via web maka kita bisa cek file berbahaya dengan cara :
+- File -> export object -> 
+<img width="760" height="741" alt="image" src="https://github.com/user-attachments/assets/8705a323-e4eb-4210-b5f4-2b98c650d071" />
+Disana kita bisa melihat file berbahaya yang dikirim welkor melalui web
+
+- untuk mendapatkan file untuk melihat hashnya kita bisa langsung save as
+<img width="939" height="688" alt="image" src="https://github.com/user-attachments/assets/d3ea64c4-7478-4b6f-a458-d1fd09173a68" />
+
+- lakukan sha256sum sama seperti soal sebelumnya
+<img width="656" height="220" alt="image" src="https://github.com/user-attachments/assets/deda9c6c-ffd3-4098-8eb0-e0aa96cfe842" />
+
+
+## 18. nc 10.15.43.32 3405
+
+![WhatsApp Image 2025-10-01 at 23 07 24_5d38eca6](https://github.com/user-attachments/assets/ebebe7f1-6f07-4cc3-be98-02e95b657a9d)
+
+#### untuk melihat file yang berbahaya kita bisa cari melalui display filter ```frame contains".exe"```
+<img width="1920" height="285" alt="image" src="https://github.com/user-attachments/assets/8fdf171a-1616-4f5b-985e-de3e6d87a958" />
+
+#### untuk export RAW datanya untuk mencari hash dari file nya kita bisa follow tcp stream nya lalu show as RAW dan save file nya
+<img width="1280" height="1042" alt="image" src="https://github.com/user-attachments/assets/8a69b579-393c-4bb4-b69a-643a5f1dc805" />
+
+#### hasil sha256sum 
+<img width="634" height="219" alt="image" src="https://github.com/user-attachments/assets/91700be3-936d-47a7-8a0f-839e59f3e53d" />
+
+
+## 19 nc 10.15.43.32 3406
+
+![WhatsApp Image 2025-10-04 at 21 22 53_aea5fdb6](https://github.com/user-attachments/assets/12a45de2-2164-4ce1-88f0-34f145b55be4)
+
+- untuk mencari pengirim kita bisa melakukan display ```filter frame contains"from"``` 
+<img width="1910" height="804" alt="image" src="https://github.com/user-attachments/assets/b8a1ca6a-74bd-4cf7-9193-b5f3aef1a471" />
+
+- lalu follow TCP stream dan show as ASCII
+<img width="1290" height="1029" alt="image" src="https://github.com/user-attachments/assets/b84abbb9-60a0-4193-85bf-78305c64917c" />
+<img width="1278" height="1028" alt="image" src="https://github.com/user-attachments/assets/9bdd7cb2-d3e2-4a3b-83c9-3823065be59d" />
+
+
+- semua keperluan soal ada dalam tcp stream ini
